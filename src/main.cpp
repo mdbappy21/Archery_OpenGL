@@ -1,22 +1,26 @@
 #include <GL/glut.h>
-#include "target.h"
-#include "arrow.h"
 #include <iostream>
+#include "bow.h"
+#include "target.h"
 
-Target target(650, 250, 50, false, 0);   // static target
-Arrow arrow(120, 120);                   // visible starting position
+Bow bow(120, 120);
+Target target(650, 250, 50, false, 0);
 
 float lastTime = 0;
-float angleDeg = 45.0f;
-float power = 300.0f;
+
+// For checking collision of every arrow
+void checkArrowTargetCollision()
+{
+    for (auto &arrow : bow.getArrows())
+        arrow.checkCollision(target);
+}
 
 void display()
 {
     glClear(GL_COLOR_BUFFER_BIT);
 
-    // ALWAYS visible
+    bow.draw();
     target.draw();
-    arrow.draw();
 
     glutSwapBuffers();
 }
@@ -27,10 +31,10 @@ void update()
     float dt = current - lastTime;
     lastTime = current;
 
+    bow.update(dt);
     target.update(dt);
-    arrow.update(dt);
 
-    arrow.checkCollision(target);
+    checkArrowTargetCollision();
 
     glutPostRedisplay();
 }
@@ -39,34 +43,35 @@ void keyboard(unsigned char key, int x, int y)
 {
     switch (key)
     {
-        case ' ':
-            // Shoot arrow from visible position
-            arrow.reset(120, 120);
-            arrow.shoot(angleDeg, power);
+        case ' ': 
+            bow.startCharge(); 
             break;
 
-        case 'a': angleDeg += 2; break;
-        case 'd': angleDeg -= 2; break;
-
-        case 'w': power += 20; break;
-        case 's': power -= 20; break;
+        case 'w': bow.aimUp();    break;
+        case 's': bow.aimDown();  break;
+        case 'a': bow.decreasePower(); break;
+        case 'd': bow.increasePower(); break;
 
         case 'r': 
-            // Reset arrow manually
-            arrow.reset(120, 120);
+            bow.getArrows().clear();
             break;
     }
+}
 
-    std::cout << "Angle: " << angleDeg
-              << "   Power: " << power << "\n";
+void keyboardUp(unsigned char key, int, int)
+{
+    if (key == ' ')
+        bow.releaseCharge();
 }
 
 void initGL()
 {
-    glClearColor(0.18f, 0.18f, 0.18f, 1.0f);
+    glClearColor(0.15f, 0.15f, 0.18f, 1.0f);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluOrtho2D(0, 800, 0, 600);  // 2D world
+    gluOrtho2D(0, 800, 0, 600);
+
+    bow.setGravity(-400.0f);
 }
 
 int main(int argc, char **argv)
@@ -74,7 +79,7 @@ int main(int argc, char **argv)
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
     glutInitWindowSize(800, 600);
-    glutCreateWindow("Arrow + Target Simple Demo");
+    glutCreateWindow("Archery_Game_OpenGL");
 
     initGL();
 
@@ -83,6 +88,7 @@ int main(int argc, char **argv)
     glutDisplayFunc(display);
     glutIdleFunc(update);
     glutKeyboardFunc(keyboard);
+    glutKeyboardUpFunc(keyboardUp);
 
     glutMainLoop();
     return 0;
