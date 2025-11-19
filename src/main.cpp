@@ -7,65 +7,79 @@
 Bow bow(120, 120);
 Target target(650, 250, 50, false, 0);
 
-float lastTime = 0;
+float lastTime = 0.0f;
 
+// ----------------------- Collision -----------------------
 void checkArrowTargetCollision()
 {
-    for (auto &arrow : bow.getArrows())
+    auto &arrows = bow.getArrowsRef(); // safer reference
+    for (auto &arrow : arrows)
         arrow.checkCollision(target);
 }
 
+// ----------------------- Display --------------------------
 void display()
 {
+    glClear(GL_COLOR_BUFFER_BIT);
+
     if (isHomeScreen())
     {
         drawHomeScreen();
-        return;
     }
-
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    bow.draw();
-    target.draw();
+    else
+    {
+        bow.draw();
+        target.draw();
+    }
 
     glutSwapBuffers();
 }
 
+// ----------------------- Update Loop -----------------------
 void update()
 {
-    if (isHomeScreen())
-    {
-        glutPostRedisplay();
-        return;
-    }
-
     float current = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
     float dt = current - lastTime;
+
+    // Clamp dt if huge (prevents jump after window drag)
+    if (dt > 0.05f) dt = 0.05f;
+
     lastTime = current;
 
-    bow.update(dt);
-    target.update(dt);
-    checkArrowTargetCollision();
+    if (!isHomeScreen())
+    {
+        bow.update(dt);
+        target.update(dt);
+        checkArrowTargetCollision();
+    }
 
     glutPostRedisplay();
 }
 
+// ----------------------- Keyboard Press --------------------
 void keyboard(unsigned char key, int x, int y)
 {
     if (isHomeScreen()) return;
 
     switch (key)
     {
-        case ' ': bow.startCharge(); break;
+        case ' ':
+            bow.startCharge();
+            break;
+
         case 'w': bow.aimUp(); break;
         case 's': bow.aimDown(); break;
         case 'a': bow.decreasePower(); break;
         case 'd': bow.increasePower(); break;
-        case 'r': bow.getArrows().clear(); break;
+
+        case 'r':
+            bow.clearArrows();   // safer than getArrows().clear()
+            break;
     }
 }
 
-void keyboardUp(unsigned char key, int, int)
+// ----------------------- Keyboard Release -------------------
+void keyboardUp(unsigned char key, int x, int y)
 {
     if (isHomeScreen()) return;
 
@@ -73,6 +87,7 @@ void keyboardUp(unsigned char key, int, int)
         bow.releaseCharge();
 }
 
+// ----------------------- Init ------------------------------
 void initGL()
 {
     glClearColor(0.15f, 0.15f, 0.18f, 1.0f);
@@ -83,6 +98,7 @@ void initGL()
     bow.setGravity(-400.0f);
 }
 
+// ----------------------- Main ------------------------------
 int main(int argc, char **argv)
 {
     glutInit(&argc, argv);
