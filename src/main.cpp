@@ -2,17 +2,33 @@
 #include <iostream>
 #include "bow.h"
 #include "target.h"
+#include "Barrier.h"
 
 Bow bow(120, 120);
 Target target(650, 250, 50, false, 0);
 
+// Create a barrier at center region
+// x=400, y=200, width=40, height=120, moving vertically
+Barrier barrier(400, 200, 40, 120, true);
+
 float lastTime = 0;
 
-// For checking collision of every arrow
-void checkArrowTargetCollision()
+// Check all collisions: arrow–target and arrow–barrier
+void checkCollisions()
 {
     for (auto &arrow : bow.getArrows())
+    {
+        // Target collision
         arrow.checkCollision(target);
+
+        // Barrier collision
+        if (barrier.checkCollision(arrow.getX(), arrow.getY()))
+        {
+            arrow.deactivate();       // stop flying
+            arrow.setHit(false);      // arrow disappears (no hit pose)
+            std::cout << "Arrow hit barrier!\n";
+        }
+    }
 }
 
 void display()
@@ -21,6 +37,7 @@ void display()
 
     bow.draw();
     target.draw();
+    barrier.draw();   // draw the barrier
 
     glutSwapBuffers();
 }
@@ -33,8 +50,9 @@ void update()
 
     bow.update(dt);
     target.update(dt);
+    barrier.update(dt);   // update barrier movement
 
-    checkArrowTargetCollision();
+    checkCollisions();
 
     glutPostRedisplay();
 }
@@ -43,18 +61,18 @@ void keyboard(unsigned char key, int x, int y)
 {
     switch (key)
     {
-        case ' ': 
-            bow.startCharge(); 
-            break;
+        case ' ': bow.startCharge(); break;
 
         case 'w': bow.aimUp();    break;
         case 's': bow.aimDown();  break;
         case 'a': bow.decreasePower(); break;
         case 'd': bow.increasePower(); break;
 
-        case 'r': 
-            bow.getArrows().clear();
-            break;
+        case 'r': bow.getArrows().clear(); break;
+
+        // toggle moving barrier
+        case 'm': barrier.setMoving(true);  break;
+        case 'n': barrier.setMoving(false); break;
     }
 }
 
@@ -79,7 +97,7 @@ int main(int argc, char **argv)
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
     glutInitWindowSize(800, 600);
-    glutCreateWindow("Archery_Game_OpenGL");
+    glutCreateWindow("Archery_Game_OpenGL_With_Barrier");
 
     initGL();
 
