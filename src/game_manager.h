@@ -5,14 +5,20 @@
 #include "target.h"
 #include "barrier.h"
 
-enum GameState { STATE_HOME, STATE_PLAYING, STATE_POPUP };
+enum GameState
+{
+    STATE_HOME,
+    STATE_PLAYING,
+    STATE_POPUP
+};
 
-class GameManager {
+class GameManager
+{
 private:
     int winW, winH;
-    Bow* bow;
-    Target* target;
-    Barrier* barrier;
+    Bow *bow;
+    Target *target;
+    Barrier *barrier;
     LevelManager levelManager;
     HomeScreen homeScreen;
 
@@ -21,10 +27,13 @@ private:
     int scoreThisLevel;
     int totalScore;
 
+    float popupDelay;  // time remaining before popup appears
+    bool pendingPopup; // waiting for delay before switching
+
     GameState state;
     bool showSuccessPopup;
 
-    bool isPointInRect(int px,int py,float rx,float ry,float rw,float rh) const;
+    bool isPointInRect(int px, int py, float rx, float ry, float rw, float rh) const;
 
 public:
     GameManager(int w, int h);

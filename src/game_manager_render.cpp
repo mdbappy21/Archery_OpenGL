@@ -1,31 +1,43 @@
 #include "game_manager.h"
+#include "render_utils.h"
 #include "ui_overlay.h"
 #include <GL/glut.h>
 
-void GameManager::render() {
-    if (state == STATE_HOME) {
-        homeScreen.draw();
-        return;
-    }
-
-    glClearColor(0.52f, 0.8f, 0.92f, 1.0f);
+void GameManager::render()
+{
+    glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     glLoadIdentity();
 
-    float groundY = 10.0f;
-    glColor3f(0.3f, 0.2f, 0.1f);
-    glBegin(GL_QUADS);
-    glVertex2f(0,0); glVertex2f(winW,0);
-    glVertex2f(winW,groundY); glVertex2f(0,groundY);
-    glEnd();
+    if (state == STATE_HOME) {
+        homeScreen.draw();
+        glutSwapBuffers();
+        return;
+    }
 
-    if (barrier) barrier->draw();
-    if (target) target->draw();
-    if (bow) bow->draw();
+    if (state == STATE_PLAYING) {
+        if (bow) bow->draw();
+        if (target) target->draw();
+        if (barrier) barrier->draw();
 
-    UIOverlay::drawHUD(totalScore, currentLevel, attemptsLeft, winW, winH);
+        UIOverlay::drawHUD(totalScore, currentLevel, attemptsLeft, winW, winH);
 
-    if (state == STATE_POPUP) UIOverlay::drawPopup(showSuccessPopup, scoreThisLevel, winW, winH);
+        glutSwapBuffers();
+        return;
+    }
 
+    if (state == STATE_POPUP) {
+        if (bow) bow->draw();
+        if (target) target->draw();
+        if (barrier) barrier->draw();
+
+        UIOverlay::drawHUD(totalScore, currentLevel, attemptsLeft, winW, winH);
+        UIOverlay::drawPopup(showSuccessPopup, scoreThisLevel, winW, winH);
+
+        glutSwapBuffers();
+        return;
+    }
+
+    // default swap to be safe
     glutSwapBuffers();
 }
