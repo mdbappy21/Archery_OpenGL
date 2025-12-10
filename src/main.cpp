@@ -1,113 +1,61 @@
+// FILE: src/main.cpp
 #include <GL/glut.h>
-#include <iostream>
-#include "bow.h"
-#include "target.h"
-#include "Barrier.h"
+#include "game_manager.h"
+#include "input_handler.h"
 
-Bow bow(120, 120);
-Target target(650, 250, 50, false, 0);
+const int WIN_W = 800;
+const int WIN_H = 600;
+static GameManager *game = nullptr;
+static double lastTime = 0.0;
 
-// Create a barrier at center region
-// x=400, y=200, width=40, height=120, moving vertically
-Barrier barrier(400, 200, 40, 120, true);
+void display() { if (game) game->render(); }
 
-float lastTime = 0;
-
-// Check all collisions: arrow–target and arrow–barrier
-void checkCollisions()
-{
-    for (auto &arrow : bow.getArrows())
-    {
-        // Target collision
-        arrow.checkCollision(target);
-
-        // Barrier collision
-        if (barrier.checkCollision(arrow.getX(), arrow.getY()))
-        {
-            arrow.deactivate();       // stop flying
-            arrow.setHit(false);      // arrow disappears (no hit pose)
-            std::cout << "Arrow hit barrier!\n";
-        }
-    }
-}
-
-void display()
-{
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    bow.draw();
-    target.draw();
-    barrier.draw();   // draw the barrier
-
-    glutSwapBuffers();
-}
-
-void update()
-{
-    float current = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
-    float dt = current - lastTime;
-    lastTime = current;
-
-    bow.update(dt);
-    target.update(dt);
-    barrier.update(dt);   // update barrier movement
-
-    checkCollisions();
-
-    glutPostRedisplay();
-}
-
-void keyboard(unsigned char key, int x, int y)
-{
-    switch (key)
-    {
-        case ' ': bow.startCharge(); break;
-
-        case 'w': bow.aimUp();    break;
-        case 's': bow.aimDown();  break;
-        case 'a': bow.decreasePower(); break;
-        case 'd': bow.increasePower(); break;
-
-        case 'r': bow.getArrows().clear(); break;
-
-        // toggle moving barrier
-        case 'm': barrier.setMoving(true);  break;
-        case 'n': barrier.setMoving(false); break;
-    }
-}
-
-void keyboardUp(unsigned char key, int, int)
-{
-    if (key == ' ')
-        bow.releaseCharge();
-}
-
-void initGL()
-{
-    glClearColor(0.15f, 0.15f, 0.18f, 1.0f);
+void reshape(int w, int h) {
+    // keep fixed logical size: always set viewport to WIN_W x WIN_H and project accordingly
+    glViewport(0,0,WIN_W,WIN_H);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluOrtho2D(0, 800, 0, 600);
+    gluOrtho2D(0, WIN_W, 0, WIN_H);
+    glMatrixMode(GL_MODELVIEW);
 
-    bow.setGravity(-400.0f);
+    if (game) game->resize(WIN_W, WIN_H);
 }
 
-int main(int argc, char **argv)
-{
+void timerFunc(int) {
+    double now = glutGet(GLUT_ELAPSED_TIME) / 1000.0;
+    double dt = now - lastTime;
+    if (dt < 0) dt = 0;
+    lastTime = now;
+    if (game) game->update((float)dt);
+    glutPostRedisplay();
+    glutTimerFunc(16, timerFunc, 0);
+}
+
+int main(int argc, char** argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
-    glutInitWindowSize(800, 600);
-    glutCreateWindow("Archery_Game_OpenGL_With_Barrier");
+    glutInitWindowSize(WIN_W, WIN_H);
+    glutCreateWindow("Archery Game 2026 - Modular");
 
-    initGL();
+    // prevent window resizing (GLUT: remove resize callback or force viewport as above)
+    // Note: GLUT itself doesn't provide easily to disable resize; controlling reshape keeps content fixed.
 
-    lastTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
+    game = new GameManager(WIN_W, WIN_H);
+    game->init();
 
+    // register with input handler
+    InputHandler::setGameManager(game);
     glutDisplayFunc(display);
-    glutIdleFunc(update);
-    glutKeyboardFunc(keyboard);
-    glutKeyboardUpFunc(keyboardUp);
+    glutReshapeFunc(reshape);
+    glutKeyboardFunc(InputHandler::keyboardDown);
+    glutKeyboardUpFunc(InputHandler::keyboardUp);
+    glutSpecialFunc(InputHandler::specialKey);
+    glutMouseFunc(InputHandler::mouseClick);
 
+    lastTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0;
+    glutTimerFunc(16, timerFunc, 0);
     glutMainLoop();
+
+    delete game;
     return 0;
 }

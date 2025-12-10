@@ -1,0 +1,13 @@
+targetX=580
+targetY=250
+targetRadius=15
+targetMoving=0
+targetMoveSpeed=0
+barrierExists=1
+barrierX=520
+barrierY=250
+barrierW=60
+barrierH=60
+barrierMoving=0
+barrierMoveSpeed=0
+gravity -500
