@@ -4,14 +4,27 @@
 
 struct LevelData {
     int levelNumber;
-    float targetX, targetY, targetRadius;
-    bool targetMoving;
+    float targetX;
+    float targetY;
+    float targetRadius;
+    int targetMoving;
     float targetMoveSpeed;
+    int targetReflectionEnabled;
 
-    bool barrierExists;
-    float barrierX, barrierY, barrierW, barrierH;
-    bool barrierMoving;
+    int barrierExists;
+    float barrierX;
+    float barrierY;
+    float barrierW;
+    float barrierH;
+    int barrierMoving;
     float barrierMoveSpeed;
+
+    int barrierRotateEnabled;
+    float barrierRotateSpeed;
+
+    int barrierScalingEnabled;
+    float barrierScaleOnTrigger;
+
     float gravity;
 };
 

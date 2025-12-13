@@ -1,13 +1,18 @@
-targetX=520
-targetY=550
+targetX=560
+targetY=350
 targetRadius=35
 targetMoving=0
 targetMoveSpeed=0
-barrierExists=0
-barrierX=0
-barrierY=0
-barrierW=0
-barrierH=0
+targetReflectionEnabled 0
+barrierExists=1
+barrierX=480
+barrierY=310
+barrierW=20
+barrierH=70
 barrierMoving=0
 barrierMoveSpeed=0
+barrierRotateEnabled 0
+barrierRotateSpeed 0
+barrierScalingEnabled 0
+barrierScaleOnTrigger 0
 gravity -550

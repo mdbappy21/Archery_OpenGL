@@ -71,3 +71,7 @@ int Target::checkHit(float ax, float ay) const
     if (dist <= radius) return 5;
     return 0;
 }
+
+void Target::reflect(int screenW) {
+    x = screenW - x;
+}

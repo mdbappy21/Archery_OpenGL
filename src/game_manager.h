@@ -5,24 +5,19 @@
 #include "target.h"
 #include "barrier.h"
 
-enum GameState
-{
-    STATE_HOME,
-    STATE_PLAYING,
-    STATE_POPUP
-};
+enum GameState { STATE_HOME, STATE_PLAYING, STATE_POPUP };
 
-class GameManager
-{
+class GameManager {
 private:
     int winW, winH;
-    Bow *bow;
-    Target *target;
-    Barrier *barrier;
+    Bow* bow;
+    Target* target;
+    Barrier* barrier;
     LevelManager levelManager;
     HomeScreen homeScreen;
 
     int currentLevel;
+    LevelData currentLevelData;   // store active level data
     int attemptsLeft;
     int scoreThisLevel;
     int totalScore;
@@ -33,7 +28,7 @@ private:
     GameState state;
     bool showSuccessPopup;
 
-    bool isPointInRect(int px, int py, float rx, float ry, float rw, float rh) const;
+    bool isPointInRect(int px,int py,float rx,float ry,float rw,float rh) const;
 
 public:
     GameManager(int w, int h);
@@ -48,7 +43,12 @@ public:
     void update(float dt);
     void render();
 
+    // input
     void onKey(unsigned char key);
     void onSpecial(int key);
     void onMouse(int button, int stateBtn, int mx, int my);
+
+    // getters used by input handlers
+    int getWinW() const { return winW; }
+    int getWinH() const { return winH; }
 };

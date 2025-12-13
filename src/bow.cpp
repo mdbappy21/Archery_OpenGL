@@ -4,7 +4,9 @@
 #include <iostream>
 
 Bow::Bow(float startX, float startY)
-    : x(startX), y(startY), angle(45), power(0), charging(false) {}
+    : x(startX), y(startY), angle(45.0f), power(0.0f), charging(false),
+      bowWidth(40.0f), bowHeight(120.0f), maxPower(1100.0f), gravity(-600.0f)
+{}
 
 void Bow::draw()
 {
@@ -18,8 +20,8 @@ void Bow::draw()
     if (charging)
     {
         float pullDist = -power / 8.0f;
-        float arrowX = x + cos(angle * M_PI / 180) * pullDist;
-        float arrowY = y + bowHeight / 2 + sin(angle * M_PI / 180) * pullDist;
+        float arrowX = x + cos(angle * M_PI / 180.0f) * pullDist;
+        float arrowY = y + bowHeight / 2.0f + sin(angle * M_PI / 180.0f) * pullDist;
 
         glPushMatrix();
         glTranslatef(arrowX, arrowY, 0);
@@ -79,33 +81,47 @@ void Bow::update(float dt)
     // Remove inactive arrows
     arrows.erase(
         std::remove_if(arrows.begin(), arrows.end(),
-                       [](Arrow &a) { return !a.isActive(); }),
+                       [](Arrow &a)
+                       { return !a.isActive(); }),
         arrows.end());
 }
 
 // Controls
-void Bow::aimUp() { if (angle < 80) angle += 2; }
-void Bow::aimDown() { if (angle > 10) angle -= 2; }
-void Bow::increasePower() { power = std::min(power + 20, maxPower); }
-void Bow::decreasePower() { power = std::max(power - 20, 0.0f); }
-void Bow::startCharge() { charging = true; power = 0; }
+void Bow::aimUp()
+{
+    if (angle < 80.0f)
+        angle += 2.0f;
+}
+void Bow::aimDown()
+{
+    if (angle > 10.0f)
+        angle -= 2.0f;
+}
+void Bow::increasePower() { power = std::min(power + 20.0f, maxPower); }
+void Bow::decreasePower() { power = std::max(power - 20.0f, 0.0f); }
+void Bow::startCharge()
+{
+    charging = true;
+    power = 0.0f;
+}
 
-// Release arrow using Arrow class
+// Release arrow using Arrow class (Bow only handles its own state)
 void Bow::releaseCharge()
 {
-    if (!charging) return;
+    if (!charging)
+        return;
     charging = false;
 
     float pullDist = -power / 8.0f;
-    float arrowX = x + cos(angle * M_PI / 180) * pullDist;
-    float arrowY = y + bowHeight / 2 + sin(angle * M_PI / 180) * pullDist;
+    float arrowX = x + cos(angle * M_PI / 180.0f) * pullDist;
+    float arrowY = y + bowHeight / 2.0f + sin(angle * M_PI / 180.0f) * pullDist;
 
     Arrow newArrow(arrowX, arrowY);
     newArrow.shoot(angle, power);
     arrows.push_back(newArrow);
 
     std::cout << "Arrow fired: power=" << power << "\n";
-    power = 0;
+    power = 0.0f;
 }
 
 // Drawing helpers
@@ -134,9 +150,9 @@ void Bow::drawString() const
     float bottomX = x + sin(0) * bowWidth;
     float bottomY = y;
 
-    float pullDist = charging ? -power / 8.0f : 0;
-    float arrowX = x + cos(angle * M_PI / 180) * pullDist;
-    float arrowY = y + bowHeight / 2 + sin(angle * M_PI / 180) * pullDist;
+    float pullDist = charging ? -power / 8.0f : 0.0f;
+    float arrowX = x + cos(angle * M_PI / 180.0f) * pullDist;
+    float arrowY = y + bowHeight / 2.0f + sin(angle * M_PI / 180.0f) * pullDist;
 
     glVertex2f(topX, topY);
     glVertex2f(arrowX, arrowY);
@@ -152,10 +168,10 @@ void Bow::drawTrajectory() const
     glPointSize(3);
     glBegin(GL_POINTS);
 
-    float simX = x + cos(angle * M_PI / 180) * power / 8;
-    float simY = y + bowHeight / 2 + sin(angle * M_PI / 180) * power / 8;
-    float vX = power * cos(angle * M_PI / 180);
-    float vY = power * sin(angle * M_PI / 180);
+    float simX = x + cos(angle * M_PI / 180.0f) * power / 8.0f;
+    float simY = y + bowHeight / 2.0f + sin(angle * M_PI / 180.0f) * power / 8.0f;
+    float vX = power * cos(angle * M_PI / 180.0f);
+    float vY = power * sin(angle * M_PI / 180.0f);
     float g = gravity;
     float dt = 0.05f;
 
@@ -165,7 +181,8 @@ void Bow::drawTrajectory() const
         vY += g * dt;
         simX += vX * dt;
         simY += vY * dt;
-        if (simY < 0) break;
+        if (simY < 0)
+            break;
     }
 
     glEnd();

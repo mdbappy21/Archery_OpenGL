@@ -19,4 +19,5 @@ public:
     float getRadius() const { return radius; }
     void setMoving(bool m) { moving = m; }
     void setPosition(float nx, float ny) { x = nx; y = ny; }
+    void reflect(int screenW);
 };
